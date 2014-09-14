@@ -58,16 +58,16 @@ func (c *Probe) probe() error {
 
 	if resp.StatusCode != c.check.StatusCode {
 		return fmt.Errorf("[%v] Unexpected status code: %v (expected: %v)\n",
-			c.check.Url, resp.StatusCode, c.check.StatusCode)
+			c.check.Name, resp.StatusCode, c.check.StatusCode)
 	}
 
-	fmt.Printf("[%v] Check okay\n", c.check.Url)
+	fmt.Printf("[%v] Check okay\n", c.check.Name)
 
 	return nil
 }
 
 func (c *Probe) handleFailure(err error) {
-	fmt.Printf("%v\n", err.Error())
+	fmt.Printf("[%v] %v\n", c.check.Name, err.Error())
 	c.downChecks += 1
 	if c.downChecks >= c.check.MaxDownChecks {
 		if c.state != Down {

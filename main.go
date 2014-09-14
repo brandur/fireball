@@ -14,11 +14,13 @@ const (
 )
 
 type Check struct {
-	CheckInterval int    `gcfg:"check-interval"`
-	MaxDownChecks int    `gcfg:"max-down-checks"`
-	Method        string `gcfg:"method"`
-	StatusCode    int    `gcfg:"status-code"`
-	Url           string `gcfg:"url"`
+	CheckInterval int      `gcfg:"check-interval"`
+	MaxDownChecks int      `gcfg:"max-down-checks"`
+	Method        string   `gcfg:"method"`
+	Name          string   `gcfg:"name"`
+	StatusCode    int      `gcfg:"status-code"`
+	To            []string `gcfg:"to"`
+	Url           string   `gcfg:"url"`
 }
 
 func main() {
@@ -30,8 +32,8 @@ func main() {
 		panic(err)
 	}
 
-	for _, check := range conf.Check {
-		err := setDefaults(check)
+	for name, check := range conf.Check {
+		err := setDefaults(name, check)
 		if err != nil {
 			panic(err)
 		}
@@ -47,7 +49,7 @@ func main() {
 	<-done
 }
 
-func setDefaults(check *Check) error {
+func setDefaults(name string, check *Check) error {
 	if check.CheckInterval == 0 {
 		check.CheckInterval = 60
 	}
@@ -60,12 +62,20 @@ func setDefaults(check *Check) error {
 		check.Method = "GET"
 	}
 
+	if check.Name == "" {
+		check.Name = name
+	}
+
 	if check.StatusCode == 0 {
 		check.StatusCode = 200
 	}
 
+	if len(check.To) < 1 {
+		return fmt.Errorf("At least one `to` field is required for a check")
+	}
+
 	if check.Url == "" {
-		return fmt.Errorf("Field `url` is required for a check")
+		return fmt.Errorf("`url` field is required for a check")
 	}
 
 	return nil
