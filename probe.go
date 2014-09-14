@@ -7,14 +7,10 @@ import (
 )
 
 type Probe struct {
-	CheckInterval time.Duration
-	MaxDownChecks int
-	Method        string
-	StateChanged  chan State
-	StatusCode    int
-	Stop          chan bool
-	Url           string
+	StateChanged chan State
+	Stop         chan bool
 
+	check      *Check
 	client     *http.Client
 	downChecks int
 	state      State
@@ -22,14 +18,10 @@ type Probe struct {
 
 func NewProbe(check *Check) *Probe {
 	return &Probe{
-		CheckInterval: check.CheckInterval,
-		StateChanged:  make(chan State),
-		MaxDownChecks: check.MaxDownChecks,
-		Method:        check.Method,
-		StatusCode:    check.StatusCode,
-		Stop:          make(chan bool),
-		Url:           check.Url,
+		StateChanged: make(chan State),
+		Stop:         make(chan bool),
 
+		check:      check,
 		client:     &http.Client{},
 		downChecks: 0,
 		state:      Up,
@@ -41,8 +33,8 @@ func (c *Probe) Run() {
 		select {
 		case <-c.Stop:
 			break
-		case <-time.After(c.CheckInterval):
-			err := c.check()
+		case <-time.After(c.check.CheckInterval):
+			err := c.probe()
 			if err != nil {
 				c.handleFailure(err)
 			} else {
@@ -52,8 +44,8 @@ func (c *Probe) Run() {
 	}
 }
 
-func (c *Probe) check() error {
-	req, err := http.NewRequest(c.Method, c.Url, nil)
+func (c *Probe) probe() error {
+	req, err := http.NewRequest(c.check.Method, c.check.Url, nil)
 	if err != nil {
 		return err
 	}
@@ -64,12 +56,12 @@ func (c *Probe) check() error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != c.StatusCode {
+	if resp.StatusCode != c.check.StatusCode {
 		return fmt.Errorf("[%v] Unexpected status code: %v (expected: %v)\n",
-			c.Url, resp.StatusCode, c.StatusCode)
+			c.check.Url, resp.StatusCode, c.check.StatusCode)
 	}
 
-	fmt.Printf("[%v] Check okay\n", c.Url)
+	fmt.Printf("[%v] Check okay\n", c.check.Url)
 
 	return nil
 }
@@ -77,7 +69,7 @@ func (c *Probe) check() error {
 func (c *Probe) handleFailure(err error) {
 	fmt.Printf("%v\n", err.Error())
 	c.downChecks += 1
-	if c.downChecks >= c.MaxDownChecks {
+	if c.downChecks >= c.check.MaxDownChecks {
 		if c.state == Up {
 			c.state = Down
 			c.StateChanged <- Down
