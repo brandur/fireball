@@ -14,7 +14,7 @@ func NewNotifier(stateChanged chan State) *Notifier {
 	return &Notifier{
 		StateChanged: stateChanged,
 
-		state: Up,
+		state: Unknown,
 	}
 }
 
@@ -24,9 +24,16 @@ func (n *Notifier) Run() {
 		case state := <-n.StateChanged:
 			switch state {
 			case Down:
-				n.notifyDown()
+				// Don't notify coming from unknown because we assume that the
+				// user already knows
+				if n.state == Up {
+					n.notifyDown()
+				}
 			case Up:
-				n.notifyUp()
+				// Same here: don't notify coming from unknown
+				if n.state == Down {
+					n.notifyUp()
+				}
 			}
 			n.state = state
 		}

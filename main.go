@@ -10,6 +10,7 @@ type State int
 const (
 	Up = iota
 	Down
+	Unknown
 )
 
 type Check struct {

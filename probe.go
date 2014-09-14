@@ -24,7 +24,7 @@ func NewProbe(check *Check) *Probe {
 		check:      check,
 		client:     &http.Client{},
 		downChecks: 0,
-		state:      Up,
+		state:      Unknown,
 	}
 }
 
@@ -70,7 +70,7 @@ func (c *Probe) handleFailure(err error) {
 	fmt.Printf("%v\n", err.Error())
 	c.downChecks += 1
 	if c.downChecks >= c.check.MaxDownChecks {
-		if c.state == Up {
+		if c.state != Down {
 			c.state = Down
 			c.StateChanged <- Down
 		}
@@ -78,7 +78,7 @@ func (c *Probe) handleFailure(err error) {
 }
 
 func (c *Probe) handleSuccess() {
-	if c.state == Down {
+	if c.state != Up {
 		c.state = Up
 		c.StateChanged <- Up
 	}
