@@ -62,6 +62,7 @@ func (c *Canary) check() error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != c.StatusCode {
 		return fmt.Errorf("[%v] Unexpected status code: %v (expected: %v)\n",

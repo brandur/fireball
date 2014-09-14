@@ -21,8 +21,8 @@ type Check struct {
 
 func main() {
 	checks := [...]Check{
-		Check{CheckInterval: 5 * time.Second, MaxDownChecks: 2, Method: "GET", StatusCode: 200, Url: "https://brandur.org"},
-		Check{CheckInterval: 5 * time.Second, MaxDownChecks: 2, Method: "GET", StatusCode: 200, Url: "https://mutelight.org"},
+		Check{CheckInterval: 10 * time.Second, MaxDownChecks: 2, Method: "GET", StatusCode: 200, Url: "https://brandur.org"},
+		Check{CheckInterval: 10 * time.Second, MaxDownChecks: 2, Method: "GET", StatusCode: 200, Url: "https://mutelight.org"},
 	}
 	for _, check := range checks {
 		canary := NewCanary(&check)
