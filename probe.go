@@ -33,7 +33,7 @@ func (c *Probe) Run() {
 		select {
 		case <-c.Stop:
 			break
-		case <-time.After(c.check.CheckInterval):
+		case <-time.After(time.Duration(c.check.CheckInterval) * time.Second):
 			err := c.probe()
 			if err != nil {
 				c.handleFailure(err)
