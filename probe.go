@@ -7,7 +7,7 @@ import (
 )
 
 type Probe struct {
-	StateChanged chan State
+	StateChanged chan StateChangedArgs
 	Stop         chan bool
 
 	check      *Check
@@ -16,9 +16,14 @@ type Probe struct {
 	state      State
 }
 
+type StateChangedArgs struct {
+	Error error
+	State State
+}
+
 func NewProbe(check *Check) *Probe {
 	return &Probe{
-		StateChanged: make(chan State),
+		StateChanged: make(chan StateChangedArgs),
 		Stop:         make(chan bool),
 
 		check:      check,
@@ -72,7 +77,10 @@ func (c *Probe) handleFailure(err error) {
 	if c.downChecks >= c.check.MaxDownChecks {
 		if c.state != Down {
 			c.state = Down
-			c.StateChanged <- Down
+			c.StateChanged <- StateChangedArgs{
+				Error: err,
+				State: Down,
+			}
 		}
 	}
 }
@@ -80,7 +88,10 @@ func (c *Probe) handleFailure(err error) {
 func (c *Probe) handleSuccess() {
 	if c.state != Up {
 		c.state = Up
-		c.StateChanged <- Up
+		c.StateChanged <- StateChangedArgs{
+			Error: nil,
+			State: Up,
+		}
 	}
 	c.downChecks = 0
 }

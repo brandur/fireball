@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"net/smtp"
+	"os"
 )
 
 type Notifier struct {
+	Check        *Check
+	From         string
 	SmtpConf     *SmtpConf
-	StateChanged chan State
-	To           []string
+	StateChanged chan StateChangedArgs
 
 	state State
 }
@@ -15,32 +18,47 @@ type Notifier struct {
 func (n *Notifier) Run() {
 	for {
 		select {
-		case state := <-n.StateChanged:
-			switch state {
+		case args := <-n.StateChanged:
+			switch args.State {
 			case Down:
 				// Don't notify coming from unknown because we assume that the
 				// user already knows
 				if n.state == Up {
-					n.notifyDown()
+					n.notifyDown(args)
 				}
 			case Up:
 				// Same here: don't notify coming from unknown
 				if n.state == Down {
-					n.notifyUp()
+					n.notifyUp(args)
 				}
 			}
-			n.state = state
+			n.state = args.State
 		}
 	}
 }
 
-func (n *Notifier) notifyDown() {
-	fmt.Printf("Mailing out: service is DOWN\n")
+func (n *Notifier) notifyDown(args StateChangedArgs) {
+	subject := fmt.Sprintf("%v is DOWN", n.Check.Name)
+	fmt.Printf("[%v] Mailing out \"%v\" to: %v\n",
+		n.Check.Name, subject, n.Check.To)
+	body := []byte(subject)
+	n.sendMail(subject, body)
 }
 
-func (n *Notifier) notifyUp() {
-	fmt.Printf("Mailing out: service is UP\n")
+func (n *Notifier) notifyUp(args StateChangedArgs) {
+	subject := fmt.Sprintf("%v is UP", n.Check.Name)
+	fmt.Printf("[%v] Mailing out \"%v\" to: %v\n",
+		n.Check.Name, subject, n.Check.To)
+	body := []byte(subject)
+	n.sendMail(subject, body)
 }
 
-func (n *Notifier) sendMail() {
+func (n *Notifier) sendMail(subject string, message []byte) {
+	auth := smtp.PlainAuth("", n.SmtpConf.User, n.SmtpConf.Pass, n.SmtpConf.Host)
+	addr := n.SmtpConf.Host + ":" + string(n.SmtpConf.Port)
+	err := smtp.SendMail(addr, auth, n.From, n.Check.To, message)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[%v] Failed to send mail: %v\n",
+			n.Check.Name, err.Error())
+	}
 }

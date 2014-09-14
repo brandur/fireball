@@ -32,7 +32,10 @@ type SmtpConf struct {
 
 func main() {
 	conf := struct {
-		Check map[string]*Check
+		Common struct {
+			From string `gcfg:"from"`
+		} `gcfg:"common"`
+		Check map[string]*Check `gcfg:"check"`
 	}{}
 	err := gcfg.ReadFileInto(&conf, "./checks.ini")
 	if err != nil {
@@ -56,8 +59,9 @@ func main() {
 
 		canary := NewProbe(check)
 		notifier := &Notifier{
+			Check:        check,
+			From:         conf.Common.From,
 			SmtpConf:     smtpConf,
-			To:           check.To,
 			StateChanged: canary.StateChanged,
 		}
 
