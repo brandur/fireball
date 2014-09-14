@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Canary struct {
+type Probe struct {
 	CheckInterval time.Duration
 	MaxDownChecks int
 	Method        string
@@ -20,8 +20,8 @@ type Canary struct {
 	state      State
 }
 
-func NewCanary(check *Check) *Canary {
-	return &Canary{
+func NewProbe(check *Check) *Probe {
+	return &Probe{
 		CheckInterval: check.CheckInterval,
 		StateChanged:  make(chan State),
 		MaxDownChecks: check.MaxDownChecks,
@@ -36,7 +36,7 @@ func NewCanary(check *Check) *Canary {
 	}
 }
 
-func (c *Canary) Run() {
+func (c *Probe) Run() {
 	for {
 		select {
 		case <-c.Stop:
@@ -52,7 +52,7 @@ func (c *Canary) Run() {
 	}
 }
 
-func (c *Canary) check() error {
+func (c *Probe) check() error {
 	req, err := http.NewRequest(c.Method, c.Url, nil)
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (c *Canary) check() error {
 	return nil
 }
 
-func (c *Canary) handleFailure(err error) {
+func (c *Probe) handleFailure(err error) {
 	fmt.Printf("%v\n", err.Error())
 	c.downChecks += 1
 	if c.downChecks >= c.MaxDownChecks {
@@ -85,7 +85,7 @@ func (c *Canary) handleFailure(err error) {
 	}
 }
 
-func (c *Canary) handleSuccess() {
+func (c *Probe) handleSuccess() {
 	if c.state == Down {
 		c.state = Up
 		c.StateChanged <- Up

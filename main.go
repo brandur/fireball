@@ -25,7 +25,7 @@ func main() {
 		Check{CheckInterval: 10 * time.Second, MaxDownChecks: 2, Method: "GET", StatusCode: 200, Url: "https://mutelight.org"},
 	}
 	for _, check := range checks {
-		canary := NewCanary(&check)
+		canary := NewProbe(&check)
 		notifier := NewNotifier(canary.StateChanged)
 		go canary.Run()
 		go notifier.Run()
