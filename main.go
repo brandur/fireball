@@ -35,7 +35,7 @@ func main() {
 		Common struct {
 			From string `gcfg:"from"`
 		} `gcfg:"common"`
-		Check map[string]*Check `gcfg:"check"`
+		Checks map[string]*Check `gcfg:"check"`
 	}{}
 	err := gcfg.ReadFileInto(&conf, "./checks.ini")
 	if err != nil {
@@ -51,7 +51,7 @@ func main() {
 		panic(fmt.Errorf("No SMTP credentials were found in environment"))
 	}
 
-	for name, check := range conf.Check {
+	for name, check := range conf.Checks {
 		err := setDefaults(name, check)
 		if err != nil {
 			panic(err)
