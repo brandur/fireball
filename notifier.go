@@ -19,15 +19,17 @@ func NewNotifier(stateChanged chan State) *Notifier {
 }
 
 func (n *Notifier) Run() {
-	select {
-	case state := <-n.StateChanged:
-		switch state {
-		case Down:
-			n.notifyDown()
-		case Up:
-			n.notifyUp()
+	for {
+		select {
+		case state := <-n.StateChanged:
+			switch state {
+			case Down:
+				n.notifyDown()
+			case Up:
+				n.notifyUp()
+			}
+			n.state = state
 		}
-		n.state = state
 	}
 }
 
