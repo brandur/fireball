@@ -23,6 +23,13 @@ type Check struct {
 	Url           string   `gcfg:"url"`
 }
 
+type SmtpConf struct {
+	Host string
+	Pass string
+	Port int
+	User string
+}
+
 func main() {
 	conf := struct {
 		Check map[string]*Check
@@ -32,6 +39,15 @@ func main() {
 		panic(err)
 	}
 
+	var smtpConf *SmtpConf
+	smtpConf, err = TryMailgunConf()
+	if err != nil {
+		panic(err)
+	}
+	if smtpConf == nil {
+		panic(fmt.Errorf("No SMTP credentials were found in environment"))
+	}
+
 	for name, check := range conf.Check {
 		err := setDefaults(name, check)
 		if err != nil {
@@ -39,7 +55,11 @@ func main() {
 		}
 
 		canary := NewProbe(check)
-		notifier := NewNotifier(canary.StateChanged)
+		notifier := &Notifier{
+			SmtpConf:     smtpConf,
+			To:           check.To,
+			StateChanged: canary.StateChanged,
+		}
 
 		go canary.Run()
 		go notifier.Run()

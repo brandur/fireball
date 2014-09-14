@@ -5,17 +5,11 @@ import (
 )
 
 type Notifier struct {
+	SmtpConf     *SmtpConf
 	StateChanged chan State
+	To           []string
 
 	state State
-}
-
-func NewNotifier(stateChanged chan State) *Notifier {
-	return &Notifier{
-		StateChanged: stateChanged,
-
-		state: Unknown,
-	}
 }
 
 func (n *Notifier) Run() {
@@ -46,4 +40,7 @@ func (n *Notifier) notifyDown() {
 
 func (n *Notifier) notifyUp() {
 	fmt.Printf("Mailing out: service is UP\n")
+}
+
+func (n *Notifier) sendMail() {
 }
