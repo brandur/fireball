@@ -24,9 +24,9 @@ type Check struct {
 	Url           string   `gcfg:"url"`
 }
 
-func GetConf(confFile string) (*Conf, error) {
+func GetConf(contents string) (*Conf, error) {
 	conf := &Conf{}
-	err := gcfg.ReadFileInto(conf, confFile)
+	err := gcfg.ReadStringInto(conf, contents)
 	if err != nil {
 		return nil, err
 	}
