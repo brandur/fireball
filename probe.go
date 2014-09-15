@@ -62,8 +62,8 @@ func (c *Probe) probe() error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != c.check.StatusCode {
-		return fmt.Errorf("[%v] Unexpected status code: %v (expected: %v)\n",
-			c.check.Name, resp.StatusCode, c.check.StatusCode)
+		return fmt.Errorf("Unexpected status code: %v (expected: %v)\n",
+			resp.StatusCode, c.check.StatusCode)
 	}
 
 	fmt.Printf("[%v] Check okay\n", c.check.Name)
