@@ -21,10 +21,10 @@ type StateChangedArgs struct {
 	State State
 }
 
-func NewProbe(check *Check) *Probe {
+func NewProbe(check *Check, stop chan bool) *Probe {
 	return &Probe{
 		StateChanged: make(chan StateChangedArgs),
-		Stop:         make(chan bool),
+		Stop:         stop,
 
 		check:      check,
 		client:     &http.Client{},
@@ -37,6 +37,7 @@ func (c *Probe) Run() {
 	for {
 		select {
 		case <-c.Stop:
+			fmt.Printf("[%v] Stopping probe\n", c.check.Name)
 			break
 		case <-time.After(time.Duration(c.check.CheckInterval) * time.Second):
 			err := c.probe()

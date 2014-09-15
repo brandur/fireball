@@ -12,6 +12,7 @@ type Notifier struct {
 	From         string
 	SmtpConf     *SmtpConf
 	StateChanged chan StateChangedArgs
+	Stop         chan bool
 
 	state State
 }
@@ -19,6 +20,9 @@ type Notifier struct {
 func (n *Notifier) Run() {
 	for {
 		select {
+		case <-n.Stop:
+			fmt.Printf("[%v] Stopping notifier\n", n.Check.Name)
+			break
 		case args := <-n.StateChanged:
 			switch args.State {
 			case Down:
