@@ -30,6 +30,26 @@ type SmtpConf struct {
 	User string
 }
 
+func getSmtpConf() (*SmtpConf, error) {
+	smtpConf, err := TryMailgunConf()
+	if err != nil {
+		return nil, err
+	}
+
+	if smtpConf == nil {
+		smtpConf, err = TrySendGridConf()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if smtpConf == nil {
+		return nil, fmt.Errorf("No SMTP credentials were found in environment")
+	}
+
+	return smtpConf, nil
+}
+
 func main() {
 	conf := struct {
 		Common struct {
@@ -42,13 +62,9 @@ func main() {
 		panic(err)
 	}
 
-	var smtpConf *SmtpConf
-	smtpConf, err = TryMailgunConf()
+	smtpConf, err := getSmtpConf()
 	if err != nil {
 		panic(err)
-	}
-	if smtpConf == nil {
-		panic(fmt.Errorf("No SMTP credentials were found in environment"))
 	}
 
 	for name, check := range conf.Checks {

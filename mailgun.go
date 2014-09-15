@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -20,5 +21,6 @@ func TryMailgunConf() (*SmtpConf, error) {
 		return nil, err
 	}
 
+	fmt.Printf("Found Mailgun credentials, user: %v\n", user)
 	return &SmtpConf{Host: host, Pass: pass, Port: portInt, User: user}, nil
 }
