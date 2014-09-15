@@ -3,17 +3,7 @@ package main
 import (
 	"code.google.com/p/gcfg"
 	"fmt"
-	"os"
 )
-
-const (
-	ConfFile = "conf.ini"
-)
-
-// run arguments for the program
-type Args struct {
-	ConfFile string
-}
 
 type State int
 
@@ -33,20 +23,9 @@ type Check struct {
 	Url           string   `gcfg:"url"`
 }
 
-func getArgs() (*Args, error) {
-	args := &Args{
-		ConfFile: os.Getenv("CONF_FILE"),
-	}
-
-	if args.ConfFile == "" {
-		args.ConfFile = ConfFile
-	}
-
-	return args, nil
-}
-
 func main() {
-	args, err := getArgs()
+	// builds run arguments for the program from env vars
+	args, err := GetArgs()
 	if err != nil {
 		panic(err)
 	}
