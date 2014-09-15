@@ -18,11 +18,14 @@ type Notifier struct {
 }
 
 func (n *Notifier) Run() {
+loop:
 	for {
 		select {
 		case <-n.Stop:
 			fmt.Printf("[%v] Stopping notifier\n", n.Check.Name)
-			break
+			// pass the value back in for the next listener
+			n.Stop <- true
+			break loop
 		case args := <-n.StateChanged:
 			switch args.State {
 			case Down:

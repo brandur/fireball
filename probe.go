@@ -34,11 +34,14 @@ func NewProbe(check *Check, stop chan bool) *Probe {
 }
 
 func (c *Probe) Run() {
+loop:
 	for {
 		select {
 		case <-c.Stop:
 			fmt.Printf("[%v] Stopping probe\n", c.check.Name)
-			break
+			// pass the value back in for the next listener
+			c.Stop <- true
+			break loop
 		case <-time.After(time.Duration(c.check.CheckInterval) * time.Second):
 			err := c.probe()
 			if err != nil {

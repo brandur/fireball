@@ -1,6 +1,9 @@
 package main
 
-import ()
+import (
+	"fmt"
+	"time"
+)
 
 type State int
 
@@ -29,6 +32,17 @@ func main() {
 
 	stop := make(chan bool)
 	run(conf, smtpConf, stop)
+
+	for {
+		select {
+		case <-time.After(30 * time.Minute):
+			fmt.Printf("Reloading configuration\n")
+			stop <- true
+			// make a new channel to drop the leftover value in this one
+			stop = make(chan bool)
+			run(conf, smtpConf, stop)
+		}
+	}
 
 	done := make(chan bool)
 	<-done
