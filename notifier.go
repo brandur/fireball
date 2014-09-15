@@ -25,12 +25,12 @@ func (n *Notifier) Run() {
 				// Don't notify coming from unknown because we assume that the
 				// user already knows
 				if n.state == Up {
-					n.notifyDown(args)
+					go n.notifyDown(args)
 				}
 			case Up:
 				// Same here: don't notify coming from unknown
 				if n.state == Down {
-					n.notifyUp(args)
+					go n.notifyUp(args)
 				}
 			}
 			n.state = args.State
@@ -73,7 +73,7 @@ This message was generated automatically by an installation of Fireball:
 }
 
 func (n *Notifier) notifyDown(args StateChangedArgs) {
-	fmt.Printf("[%v] Mailing out DOWN to: %v\n", n.Check.Name, n.Check.To)
+	fmt.Printf("[%v] Mailing DOWN to: %v\n", n.Check.Name, n.Check.To)
 	body := []byte(n.mailTemplateDown(n.Check.Name, n.Check.Url, args.Error))
 	n.sendMail(body)
 }
