@@ -23,32 +23,6 @@ type Check struct {
 	Url           string   `gcfg:"url"`
 }
 
-type SmtpConf struct {
-	Host string
-	Pass string
-	Port int
-	User string
-}
-
-func getSmtpConf() (*SmtpConf, error) {
-	configurers := []func() (*SmtpConf, error){
-		TryMailgunConf,
-		TrySendGridConf,
-	}
-
-	for _, configurer := range configurers {
-		smtpConf, err := configurer()
-		if err != nil {
-			return nil, err
-		}
-		if smtpConf != nil {
-			return smtpConf, nil
-		}
-	}
-
-	return nil, fmt.Errorf("No SMTP credentials were found in environment")
-}
-
 func main() {
 	conf := struct {
 		Common struct {
@@ -61,7 +35,7 @@ func main() {
 		panic(err)
 	}
 
-	smtpConf, err := getSmtpConf()
+	smtpConf, err := GetSmtpConf()
 	if err != nil {
 		panic(err)
 	}
