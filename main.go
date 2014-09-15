@@ -56,9 +56,6 @@ func main() {
 			run(conf, smtpConf, stop)
 		}
 	}
-
-	done := make(chan bool)
-	<-done
 }
 
 func readConf(args *Args) (*Conf, error) {
