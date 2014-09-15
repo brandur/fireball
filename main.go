@@ -37,7 +37,7 @@ func main() {
 
 	for {
 		select {
-		case <-time.After(30 * time.Second):
+		case <-time.After(30 * time.Minute):
 			fmt.Printf("Reloading configuration\n")
 			stop <- true
 
