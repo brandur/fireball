@@ -33,7 +33,7 @@ type Check struct {
 	Url           string   `gcfg:"url"`
 }
 
-func getArgs() *Args {
+func getArgs() (*Args, error) {
 	args := &Args{
 		ConfFile: os.Getenv("CONF_FILE"),
 	}
@@ -42,11 +42,14 @@ func getArgs() *Args {
 		args.ConfFile = ConfFile
 	}
 
-	return args
+	return args, nil
 }
 
 func main() {
-	args := getArgs()
+	args, err := getArgs()
+	if err != nil {
+		panic(err)
+	}
 
 	conf := struct {
 		Common struct {
@@ -54,7 +57,7 @@ func main() {
 		} `gcfg:"common"`
 		Checks map[string]*Check `gcfg:"check"`
 	}{}
-	err := gcfg.ReadFileInto(&conf, args.ConfFile)
+	err = gcfg.ReadFileInto(&conf, args.ConfFile)
 	if err != nil {
 		panic(err)
 	}
