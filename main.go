@@ -31,23 +31,22 @@ type SmtpConf struct {
 }
 
 func getSmtpConf() (*SmtpConf, error) {
-	smtpConf, err := TryMailgunConf()
-	if err != nil {
-		return nil, err
+	configurers := []func() (*SmtpConf, error){
+		TryMailgunConf,
+		TrySendGridConf,
 	}
 
-	if smtpConf == nil {
-		smtpConf, err = TrySendGridConf()
+	for _, configurer := range configurers {
+		smtpConf, err := configurer()
 		if err != nil {
 			return nil, err
 		}
+		if smtpConf != nil {
+			return smtpConf, nil
+		}
 	}
 
-	if smtpConf == nil {
-		return nil, fmt.Errorf("No SMTP credentials were found in environment")
-	}
-
-	return smtpConf, nil
+	return nil, fmt.Errorf("No SMTP credentials were found in environment")
 }
 
 func main() {
