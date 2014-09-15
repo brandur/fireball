@@ -38,23 +38,53 @@ func (n *Notifier) Run() {
 	}
 }
 
+func (n *Notifier) mailTemplateDown(name string, url string, err error) string {
+	return fmt.Sprintf(`Subject: %v is DOWN
+
+Please note that according to an HTTP test, %v appears to be DOWN.
+
+The following error was encountered while trying to probe:
+
+    %v
+
+The URL being checked is:
+
+    %v
+
+This message was generated automatically by an installation of Fireball:
+
+    https://github.com/brandur/fireball`,
+		name, name, err.Error(), url)
+}
+
+func (n *Notifier) mailTemplateUp(name string, url string) string {
+	return fmt.Sprintf(`Subject: %v is UP
+
+Please note that according to an HTTP test, %v appears to be back UP.
+
+The URL being checked is:
+
+    %v
+
+This message was generated automatically by an installation of Fireball:
+
+    https://github.com/brandur/fireball`,
+		name, name, url)
+}
+
 func (n *Notifier) notifyDown(args StateChangedArgs) {
-	subject := fmt.Sprintf("%v is DOWN", n.Check.Name)
-	fmt.Printf("[%v] Mailing out \"%v\" to: %v\n",
-		n.Check.Name, subject, n.Check.To)
-	body := []byte(subject)
-	n.sendMail(subject, body)
+	fmt.Printf("[%v] Mailing out DOWN to: %v\n", n.Check.Name, n.Check.To)
+	body := []byte(n.mailTemplateDown(n.Check.Name, n.Check.Url, args.Error))
+	n.sendMail(body)
 }
 
 func (n *Notifier) notifyUp(args StateChangedArgs) {
-	subject := fmt.Sprintf("%v is UP", n.Check.Name)
-	fmt.Printf("[%v] Mailing out \"%v\" to: %v\n",
-		n.Check.Name, subject, n.Check.To)
-	body := []byte(subject)
-	n.sendMail(subject, body)
+	fmt.Printf("[%v] Mailing UP to: %v\n", n.Check.Name, n.Check.To)
+	body := []byte(n.mailTemplateUp(n.Check.Name, n.Check.Url))
+	n.sendMail(body)
 }
 
-func (n *Notifier) sendMail(subject string, body []byte) {
+func (n *Notifier) sendMail(body []byte) {
 	auth := smtp.PlainAuth("", n.SmtpConf.User, n.SmtpConf.Pass, n.SmtpConf.Host)
 	addr := n.SmtpConf.Host + ":" + strconv.Itoa(n.SmtpConf.Port)
 	err := smtp.SendMail(addr, auth, n.From, n.Check.To, body)
